@@ -35,5 +35,5 @@ def get_info(filename):
         csvFile.close()
 
 if __name__ == '__main__':
-    filename = dt.now().strftime('%Y%m%d%H') + '_change_info.csv'
+    filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
     get_info(filename)
