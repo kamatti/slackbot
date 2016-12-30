@@ -44,7 +44,7 @@ class Slack(object):
 
 if __name__ == "__main__":
 
-    slack = Slack("xoxb-114913847334-qCfCdBAI6PQOTemKLb5Y1IZS")
+    slack = Slack("API TOKEN")
     #print(slack.get_channel_list())
 
     filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
