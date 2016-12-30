@@ -18,7 +18,7 @@ def make_attachment(csvFile):
         'title': '授業変更情報',
         'title_link': 'http://hirose.sendai-nct.ac.jp/kyuko/',
         'fallback': '授業変更情報',
-        'color': '#AB7088',
+        'color': '#FF0000',
         'image_url': '',
         'text': '',
     }
@@ -38,7 +38,7 @@ def make_attachment(csvFile):
             attachments.append(copy.deepcopy(attachment))
 
     f.close()
-    
+
     return attachments
 
 if __name__ == "__main__":

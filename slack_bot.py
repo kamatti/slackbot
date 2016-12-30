@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from slacker import Slacker
+from datetime import datetime as dt
+from make_attachment import make_attachment
+from get_info import get_info
 
 class Slack(object):
 
@@ -19,7 +22,7 @@ class Slack(object):
 
         result = []
         for data in raw_data["channels"]:
-            result.append(dict(channel_id=data["id"], channel_name=data["name"]))            
+            result.append(dict(channel_id=data["id"], channel_name=data["name"]))
 
         return result
 
@@ -29,11 +32,25 @@ class Slack(object):
         """
 
         channel_name = "#" + channel
-        self.__slacker.chat.post_message(channel_name, message)
+        self.__slacker.chat.post_message(channel_name, message, as_user=True)
+
+    def post_attachment_to_channel(self, channel, attachment):
+        """
+        Slackチームの任意のチャンネルにアタッチメントを投稿する．
+        """
+
+        channel_name = '#' + channel
+        self.__slacker.chat.post_message(channel_name, attachments=[attachment], text='', as_user=True)
 
 if __name__ == "__main__":
 
-    slack = Slack("xoxb-114913847334-AR5kavzR7apv4jcZ2mdcFWJn")
-    print(slack.get_channel_list())
-    slack.post_message_to_channel("bot_test", "テストととととと")
+    slack = Slack("xoxb-114913847334-qCfCdBAI6PQOTemKLb5Y1IZS")
+    #print(slack.get_channel_list())
 
+    filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    get_info(filename)
+
+    attachments = make_attachment(filename)
+
+    for mes in attachments:
+        slack.post_attachment_to_channel('bot_test', mes)
