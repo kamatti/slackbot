@@ -6,13 +6,17 @@ from datetime import datetime as dt
 
 
 def get_info(filename):
+    """
+    仙台高専広瀬の授業変更ページから変更，休講情報を抜き出してcsvとして保存する．
+    授業変更ページの構成が残念なのでだいぶ無理やり情報を取得している．
+    pram : filename -> 保存するファイル名
+    """
     html = urlopen('http://hirose.sendai-nct.ac.jp/kyuko/kyuko.cgi')
     soup = BeautifulSoup(html, 'html.parser')
 
     # 変更情報はtable width=650に記載されている
     tables = soup.findAll('table', {'width': '650'})
 
-    #filename = dt.now().strftime('%Y%m%d%H') + '_change_info.csv'
     csvFile = open(filename, 'wt', newline='', encoding='utf-8')
     writer = csv.writer(csvFile)
 
