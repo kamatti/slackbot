@@ -23,7 +23,8 @@ def get_info(filename):
             for cell in row.findAll('b'):
                 info.append(cell.get_text())
             # 教員名を取得(fontタグで指定)
-            info.append(row.find('font', {'color': '#00008B'}).get_text().rstrip())
+            info.append(
+                row.find('font', {'color': '#00008B'}).get_text().rstrip())
             # 変更の状態(休講，変更)を取得(画像のsrcタグで判断)
             img = row.find('img')['src'][6:]
             info.append(img)
