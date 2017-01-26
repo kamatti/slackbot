@@ -1,0 +1,12 @@
+{
+  "team":{
+    "your team name":{
+      "access_token":"your access token",
+      "channel":"channel name",
+      "pattern":[
+        "regular expression",
+        "..."
+      ]
+    }
+  }
+}
