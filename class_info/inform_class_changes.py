@@ -2,6 +2,9 @@
 from slacker import Slacker
 
 from datetime import datetime as dt
+import sys   # 引数取得
+import json  # 設定ファイルのパース
+
 from make_attachment import make_attachment
 from get_info import get_info
 
@@ -59,22 +62,31 @@ class Slack(object):
             self.__slacker.chat.post_message(channel_name, attachments=[attachment],
                                              text='', as_user=True)
 
+def read_json_file(path):
+    with open(path, 'rt') as f:
+        date = json.load(f)
+    return date
+
 if __name__ == "__main__":
 
-    slack = Slack("YOUR ACCESS TOKEN")
+    if len(sys.argv) != 3:
+        print('Usage : python {} "setting file(.json)" "team name"'.format(sys.argv[0]), file=sys.stderr)
+        sys.exit()
 
-    filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
-    # get_info(filename)
+    # 設定ファイルの読み込み
+    settings = read_json_file(sys.argv[1])
+    team = settings['team'][sys.argv[2]]
 
-    info = slack.post_message_to_channel('bot_test', 'wawawawaawa')
-    # print(info.body['ts'])
+    slack = Slack(team['access_token'])
 
-    # 4年の変更情報
-    attachments_for_4th = make_attachment(filename, '\A([4INA]|[４ＩＮＡ全]).?.?[^1-35]([4LN]|[４ＬＮ全])\Z')
-    for mes in attachments_for_4th:
-        slack.post_attachment_to_channel('bot_test', mes)
+    # ファイルはchangesディレクトリ配下に日付付きで保存しておく
+    # TODO : ファイルの保存方法は検討
+    filename = '/home/squid/SlackBot/class_info/changes/' + dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    get_info(filename)
 
-    # 5年の変更情報
-    attachments_for_5th = make_attachment(filename, '\A([5INA]|[５ＩＮＡ全]).?.?[^1-4]([5LN]|[５ＬＮ全])\Z')
-    for mes in attachments_for_5th:
-        slack.post_attachment_to_channel('bot_test', mes)
+    # 投稿
+    slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'))
+    for pat in team['pattern']:
+        attachments = make_attachment(filename, pat)
+        for mes in attachments:
+            slack.post_attachment_to_channel(team['channel'], mes)
