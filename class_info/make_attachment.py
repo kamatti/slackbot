@@ -39,10 +39,12 @@ def make_attachment(csvFile, pattern):
                 attachment['image_url'] += row[4]       # 画像のurl
                 # 通知で変更情報か休講情報か
                 if re.match('henko', row[4]):
-                    attachment['fallback'] = '変更情報'
+                    attachment['text'] = row[1] + '変更情報\n' + attachment['text']
+                    attachment['fallback'] = row[1] + '変更情報'
                     attachment['color'] = '#00FF00'
                 elif re.match('kyuko', row[4]):
-                    attachment['fallback'] = '休講情報'
+                    attachment['text'] = row[1] + '休講情報\n' + attachment['text']
+                    attachment['fallback'] = row[1] + '休講情報'
                     attachment['color'] = '#FF0000'
                 else:
                     # 登録側のシステムが変わらない限りここは通らない
