@@ -32,7 +32,7 @@ class Slack(object):
 
         return result
 
-    def post_message_to_channel(self, channel, message, *, ts=0):
+    def post_message_to_channel(self, channel, message, *, ts=None, name=None, icon=None):
         """
         Slackチームの任意のチャンネルにメッセージを投稿する。
         """
@@ -43,11 +43,11 @@ class Slack(object):
             info = self__slacker.chat.post_message(channel_name, message, as_user=True, thread_ts=ts)
         else:
             # slack.Response classはメンバbodyにjson形式でデータ持ってる
-            info = self.__slacker.chat.post_message(channel_name, message, as_user=True)
+            info = self.__slacker.chat.post_message(channel_name, message, username=name, icon_emoji=icon)
 
         return info
 
-    def post_attachment_to_channel(self, channel, attachment, *, ts=0):
+    def post_attachment_to_channel(self, channel, attachment, *, ts=0, name=None, icon=None):
         """
         Slackチームの任意のチャンネルにアタッチメントを投稿する．
         """
@@ -57,10 +57,10 @@ class Slack(object):
         # thread化するかどうか
         if ts:
             self.__slacker.chat.post_message(channel_name, attachments=[attachment],
-                                             text='', as_user=True, thread_ts=ts)
+                                             text='', thread_ts=ts)
         else:
             self.__slacker.chat.post_message(channel_name, attachments=[attachment],
-                                             text='', as_user=True)
+                                             text='', username=name, icon_emoji=icon)
 
 def read_json_file(path):
     with open(path, 'rt') as f:
@@ -81,12 +81,14 @@ if __name__ == "__main__":
 
     # ファイルはchangesディレクトリ配下に日付付きで保存しておく
     # TODO : ファイルの保存方法は検討
+    # プレフィックス部分は適宜書き換え
+    # TODO : 自動でこのスクリプトの場所を取得する
     filename = '/home/squid/SlackBot/class_info/changes/' + dt.now().strftime('%Y%m%d') + '_change_info.csv'
     get_info(filename)
 
     # 投稿
-    slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'))
+    slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'), name='reminder', icon=':ghost:')
     for pat in team['pattern']:
         attachments = make_attachment(filename, pat)
         for mes in attachments:
-            slack.post_attachment_to_channel(team['channel'], mes)
+            slack.post_attachment_to_channel(team['channel'], mes, name='reminder', icon=':ghost:')
