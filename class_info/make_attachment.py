@@ -21,12 +21,10 @@ def make_attachment(csvFile, pattern):
             'title_link': 'http://hirose.sendai-nct.ac.jp/kyuko/',
             'fallback': '',
             'color': '',
-            'image_url': '',
+            # 'image_url': '',
             'text': '',
         }
 
-        # クソみたいなあれに対応するためのゴリラみたいな正規表現
-        # pattern = '\A([4INA]|[４ＩＮＡ全]).?.?[^1-35]([4LN]|[４ＬＮ全])\Z'
         for row in reader:
             attachment['text'] = ''
             # 高専のHPの画像そのまま使う
@@ -36,7 +34,7 @@ def make_attachment(csvFile, pattern):
                 attachment['text'] += row[0] + '\n'     # 日付
                 attachment['text'] += row[2] + '\n'     # 時限
                 attachment['text'] += row[5]            # 教科
-                attachment['image_url'] += row[4]       # 画像のurl
+                # attachment['image_url'] += row[4]       # 画像のurl
                 # 通知で変更情報か休講情報か
                 if re.match('henko', row[4]):
                     attachment['text'] = row[1] + '変更情報\n' + attachment['text']
