@@ -85,7 +85,8 @@ if __name__ == "__main__":
     prefix = sb.check_output(['pwd']).decode('utf-8').rstrip() + '/changes/'
 
     # 最新ファイルの更新
-    sb.check_output(['mv', prefix + 'latest.csv', prefix + 'oldest.csv'])
+    # ファイルの更新はcronでやる
+    # sb.check_output(['mv', prefix + 'latest.csv', prefix + 'oldest.csv'])
     # ファイルはchangesディレクトリ配下に日付付きで保存しておく
     # TODO : ファイルの保存方法は検討
     # プレフィックス部分は適宜書き換え
