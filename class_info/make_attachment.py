@@ -52,7 +52,8 @@ def make_attachment(csvFile, pattern):
     return attachments
 
 if __name__ == "__main__":
-    filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    # filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    filename = './changes/diff.scv'
     attachments = make_attachment(filename)
 
     for e in attachments:

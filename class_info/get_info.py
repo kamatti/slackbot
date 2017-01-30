@@ -40,5 +40,6 @@ def get_info(filename):
         csvFile.close()
 
 if __name__ == '__main__':
-    filename = dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    # filename = '/Users/kamachi/slackbot/class_info/changes/' + dt.now().strftime('%Y%m%d') + '_change_info.csv'
+    filename = './changes/latest.csv'
     get_info(filename)

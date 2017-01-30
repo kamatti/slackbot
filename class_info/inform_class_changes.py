@@ -2,11 +2,13 @@
 from slacker import Slacker
 
 from datetime import datetime as dt
+import subprocess as sb
 import sys   # 引数取得
 import json  # 設定ファイルのパース
 
 from make_attachment import make_attachment
 from get_info import get_info
+from difference import difference
 
 
 class Slack(object):
@@ -79,16 +81,28 @@ if __name__ == "__main__":
 
     slack = Slack(team['access_token'])
 
+    # prefix = '/home/squid/SlackBot/class_info/changes/'
+    prefix = sb.check_output(['pwd']).decode('utf-8').rstrip() + '/changes/'
+
+    # 最新ファイルの更新
+    sb.check_output(['mv', prefix + 'latest.csv', prefix + 'oldest.csv'])
     # ファイルはchangesディレクトリ配下に日付付きで保存しておく
     # TODO : ファイルの保存方法は検討
     # プレフィックス部分は適宜書き換え
     # TODO : 自動でこのスクリプトの場所を取得する
-    filename = '/home/squid/SlackBot/class_info/changes/' + dt.now().strftime('%Y%m%d') + '_change_info.csv'
-    get_info(filename)
+    filename = 'latest.csv'
+    get_info(prefix + filename)
+
+    # 差分ファイルの生成
+    filename = 'diff.csv'
+    diff = difference(prefix + 'latest.csv', prefix + 'oldest.csv')
+    # 書き込み
+    with open(prefix + filename, 'w') as f:
+        f.writelines(diff)
 
     # 投稿
     slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'), name='reminder', icon=':ghost:')
     for pat in team['pattern']:
-        attachments = make_attachment(filename, pat)
+        attachments = make_attachment(prefix + filename, pat)
         for mes in attachments:
             slack.post_attachment_to_channel(team['channel'], mes, name='reminder', icon=':ghost:')
