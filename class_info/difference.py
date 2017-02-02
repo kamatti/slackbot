@@ -16,6 +16,6 @@ def difference(latest, oldest):
 if __name__ == '__main__':
     diff = difference('./changes/latest.csv', './changes/oldest.csv')
 
-    with open('./changes/diff.csv', 'w') as f:
-        # f.writelines(sorted(diff))
-        f.writelines(diff)
+    for d in diff:
+        print(d)
+
