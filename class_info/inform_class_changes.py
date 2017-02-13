@@ -101,7 +101,7 @@ if __name__ == "__main__":
         f.writelines(diff)
 
     # 投稿
-    slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'), name='reminder', icon=':ghost:')
+    # slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'), name='reminder', icon=':ghost:')
     for pat in team['pattern']:
         attachments = make_attachment(prefix + filename, pat)
         for mes in attachments:
