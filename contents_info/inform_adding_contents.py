@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 from slacker import Slacker
 
-from datetime import datetime as dt
 import subprocess as sb
 import sys   # 引数取得
-import json  # 設定ファイルのパース
 
-from make_attachment import make_attachment
-from get_info import get_info
-from difference import difference
-
+from ./defference import defference
 
 class Slack(object):
 
@@ -18,21 +13,6 @@ class Slack(object):
     def __init__(self, token):
 
         self.__slacker = Slacker(token)
-
-    def get_channel_list(self):
-        """
-        Slackチーム内のチャンネルID、チャンネル名一覧を取得する。
-        """
-
-        # bodyで取得することで、[{チャンネル1},{チャンネル2},...,]の形式で取得できる。
-        raw_data = self.__slacker.channels.list().body
-
-        result = []
-        for data in raw_data["channels"]:
-            result.append(
-                dict(channel_id=data["id"], channel_name=data["name"]))
-
-        return result
 
     def post_message_to_channel(self, channel, message, *, ts=None, name=None, icon=None):
         """
@@ -49,26 +29,6 @@ class Slack(object):
 
         return info
 
-    def post_attachment_to_channel(self, channel, attachment, *, ts=0, name=None, icon=None):
-        """
-        Slackチームの任意のチャンネルにアタッチメントを投稿する．
-        """
-
-        channel_name = '#' + channel
-
-        # thread化するかどうか
-        if ts:
-            self.__slacker.chat.post_message(channel_name, attachments=[attachment],
-                                             text='', thread_ts=ts)
-        else:
-            self.__slacker.chat.post_message(channel_name, attachments=[attachment],
-                                             text='', username=name, icon_emoji=icon)
-
-def read_json_file(path):
-    with open(path, 'rt') as f:
-        date = json.load(f)
-    return date
-
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
@@ -81,28 +41,25 @@ if __name__ == "__main__":
 
     slack = Slack(team['access_token'])
 
-    prefix = '/home/squid/slackbot/class_info/changes/'
-    # prefix = sb.check_output(['pwd']).decode('utf-8').rstrip() + '/changes/'
+    prefix = '/home/squid/nas/'
 
-    # 最新ファイルの更新
-    # ファイルの更新はcronでやる
-    # sb.check_output(['mv', prefix + 'latest.csv', prefix + 'oldest.csv'])
-    # TODO : ファイルの保存方法は検討
-    # プレフィックス部分は適宜書き換え
-    # TODO : 自動でこのスクリプトの場所を取得する
-    filename = 'latest.csv'
-    get_info(prefix + filename)
+    for target in team['target']:
+        oldest = []
+        latest = []
+        # targetのパスから対象のディレクトリ名を抜き出してそれをファイル名にする
+        name = target.rstrip('/').split('/')[-1:][0]
+        with open(name, mode='r', encoding='utf-8') as f:
+            oldest = f.readlines()
+            print(oldest)
+        # コマンドの実行結果をリストにする
+        latest = sb.run(['ls', '-lR', prefix + target], stdout=sb.PIPE).stdout.decode('utf-8').split('\n')
 
-    # 差分ファイルの生成
-    filename = 'diff.csv'
-    diff = difference(prefix + 'latest.csv', prefix + 'oldest.csv')
-    # 書き込み
-    with open(prefix + filename, 'w') as f:
-        f.writelines(diff)
+        diff = difference(latest, oldest)
+        # 差分があれば投稿
+        if len(diff):
+            slack.post_message_to_channel(team['channel'], name + "が更新されました", name='お知らせ君', icon=':white-glass')
 
-    # 投稿
-    # slack.post_message_to_channel(team['channel'], dt.now().strftime('取得日 : %Y年%m月%d日'), name='reminder', icon=':ghost:')
-    for pat in team['pattern']:
-        attachments = make_attachment(prefix + filename, pat)
-        for mes in attachments:
-            slack.post_attachment_to_channel(team['channel'], mes, name='reminder', icon=':ghost:')
+        # ファイル内のリストを更新
+        with open(name, mode='w', encoding='utf-8') as f:
+            for raw in latest:
+                f.write(raw)
