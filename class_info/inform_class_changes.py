@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     slack = Slack(team['access_token'])
 
-    prefix = '/home/squid/SlackBot/class_info/changes/'
+    prefix = '/home/squid/slackbot/class_info/changes/'
     # prefix = sb.check_output(['pwd']).decode('utf-8').rstrip() + '/changes/'
 
     # 最新ファイルの更新
