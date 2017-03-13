@@ -78,7 +78,7 @@ if __name__ == "__main__":
     diff = difference(latest, oldest)
     # 差分があれば投稿
     if len(diff):
-        slack.post_message_to_channel(args.channel, name + "が更新されました", name='お知らせ君', icon=':white-glass:')
+        slack.post_message_to_channel(args.channel, name + "が更新されました", name='諜報部', icon=':nerv:')
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
