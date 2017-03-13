@@ -3,8 +3,7 @@ from slacker import Slacker
 
 import subprocess as sb
 import sys   # 引数取得
-
-from ./defference import defference
+import json
 
 class Slack(object):
 
@@ -29,6 +28,21 @@ class Slack(object):
 
         return info
 
+def read_json_file(path):
+    with open(path, 'rt') as f:
+        date = json.load(f)
+    return date
+
+def difference(latest, oldest):
+    '''
+    ２つのリストからlatestにある行のリストを作る
+    '''
+    set1 = set(latest)
+    set2 = set(oldest)
+
+    return list(set1.difference(set2))
+
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 3:
@@ -43,23 +57,30 @@ if __name__ == "__main__":
 
     prefix = '/home/squid/nas/'
 
+    # エラー出力用
+    err = open('/dev/null', mode='w')
+
     for target in team['target']:
         oldest = []
         latest = []
+
         # targetのパスから対象のディレクトリ名を抜き出してそれをファイル名にする
         name = target.rstrip('/').split('/')[-1:][0]
-        with open(name, mode='r', encoding='utf-8') as f:
+        with open(name, mode='rt', encoding='utf-8') as f:
             oldest = f.readlines()
-            print(oldest)
+        # 行末の改行文字を削除
+        oldest = list(map(lambda x: x.rstrip(), oldest))
+
         # コマンドの実行結果をリストにする
-        latest = sb.run(['ls', '-lR', prefix + target], stdout=sb.PIPE).stdout.decode('utf-8').split('\n')
+        latest = sb.run(['ls', '-lR', prefix + target], stdout=sb.PIPE, stderr=err).stdout.decode('utf-8').split('\n')
 
         diff = difference(latest, oldest)
         # 差分があれば投稿
         if len(diff):
-            slack.post_message_to_channel(team['channel'], name + "が更新されました", name='お知らせ君', icon=':white-glass')
+            slack.post_message_to_channel(team['channel'], name + "が更新されました", name='お知らせ君', icon=':white-glass:')
 
         # ファイル内のリストを更新
-        with open(name, mode='w', encoding='utf-8') as f:
+        with open(name, mode='wt', encoding='utf-8') as f:
             for raw in latest:
-                f.write(raw)
+                print(raw, file=f)
+    err.close()
