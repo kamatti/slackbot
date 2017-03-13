@@ -3,6 +3,7 @@ from slacker import Slacker
 
 import subprocess as sb
 import sys   # 引数取得
+import argparse
 import json
 
 class Slack(object):
@@ -28,11 +29,6 @@ class Slack(object):
 
         return info
 
-def read_json_file(path):
-    with open(path, 'rt') as f:
-        date = json.load(f)
-    return date
-
 def difference(latest, oldest):
     '''
     ２つのリストからlatestにある行のリストを作る
@@ -45,42 +41,46 @@ def difference(latest, oldest):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 3:
-        print('Usage : python {} "setting file(.json)" "team name"'.format(sys.argv[0]), file=sys.stderr)
-        sys.exit()
+    parser = argparse.ArgumentParser(description='コンテンツの追加を確認するためのスクリプト')
+    parser.add_argument('channel', default='contents', help='投稿するチャンネル')
+    parser.add_argument('--access_token', help='投稿するアカウントのアクセストークン')
+    parser.add_argument('-p', '--path', action='store', type=str,
+                        help='検索するディレクトリパス．絶対パスで指定した方が幸せです．')
+    parser.add_argument('-f', '--file', action='store', type=str,
+                        help='以前のデータを保存したファイルを指定．絶対パスで指定した方が幸せです．')
+    parser.add_argument('-type', action='store', choices=['f', 'd'])
+    args = parser.parse_args()
 
-    # 設定ファイルの読み込み
-    settings = read_json_file(sys.argv[1])
-    team = settings['team'][sys.argv[2]]
+    slack = Slack(args.access_token)
 
-    slack = Slack(team['access_token'])
+    # 探索するディレクトリのパス
+    target = args.path
 
-    prefix = '/home/squid/nas/'
+    name = args.file
+    with open(name, mode='rt', encoding='utf-8') as f:
+        oldest = f.readlines()
+    # 行末の改行文字を削除
+    oldest = list(map(lambda x: x.rstrip(), oldest))
 
-    # エラー出力用
-    err = open('/dev/null', mode='w')
+    # 実行するコマンド
+    if args.type == 'f' or args.type == 'd':
+        command = 'find {0} -type {1} | grep -v ".AppleDouble"'.format(target, args.type)
+    else:
+        command = 'find {0} | grep -v ".AppleDouble"'.format(target, args.type)
 
-    for target in team['target']:
-        oldest = []
-        latest = []
+    proc = sb.Popen(
+           command,
+           shell=True,
+           stdout=sb.PIPE
+    )
+    latest = proc.communicate()
 
-        # targetのパスから対象のディレクトリ名を抜き出してそれをファイル名にする
-        name = target.rstrip('/').split('/')[-1:][0]
-        with open(name, mode='rt', encoding='utf-8') as f:
-            oldest = f.readlines()
-        # 行末の改行文字を削除
-        oldest = list(map(lambda x: x.rstrip(), oldest))
+    diff = difference(latest, oldest)
+    # 差分があれば投稿
+    if len(diff):
+        slack.post_message_to_channel(args.channel, name + "が更新されました", name='お知らせ君', icon=':white-glass:')
 
-        # コマンドの実行結果をリストにする
-        latest = sb.run(['ls', '-lR', prefix + target], stdout=sb.PIPE, stderr=err).stdout.decode('utf-8').split('\n')
-
-        diff = difference(latest, oldest)
-        # 差分があれば投稿
-        if len(diff):
-            slack.post_message_to_channel(team['channel'], name + "が更新されました", name='お知らせ君', icon=':white-glass:')
-
-        # ファイル内のリストを更新
-        with open(name, mode='wt', encoding='utf-8') as f:
-            for raw in latest:
-                print(raw, file=f)
-    err.close()
+    # ファイル内のリストを更新
+    with open(name, mode='wt', encoding='utf-8') as f:
+        for raw in latest:
+            print(raw, file=f)
