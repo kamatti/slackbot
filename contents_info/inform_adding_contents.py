@@ -5,6 +5,8 @@ import subprocess as sb
 import sys   # 引数取得
 import argparse
 import json
+import re
+import os.path
 
 class Slack(object):
 
@@ -51,6 +53,15 @@ def difference(latest, oldest):
 
     return list(set1.difference(set2))
 
+def get_titles(full_path):
+    titles = []
+
+    for raw in full_path:
+        tmp = re.sub('第[0-9]巻.*$', '', raw)
+        result, ext = os.path.splitext(res)
+        titles.append(result.rstrip('/').split('/')[-1:][0])
+
+    return sorted(list(set(titles)))
 
 if __name__ == "__main__":
 
@@ -77,10 +88,11 @@ if __name__ == "__main__":
     oldest = list(map(lambda x: x.rstrip(), oldest))
 
     # 実行するコマンド
+    # '.'から始まる隠しファイルは無視
     if args.type == 'f' or args.type == 'd':
-        command = 'find {0} -type {1} | grep -v ".AppleDouble" | grep -v ".DS_Store"'.format(target, args.type)
+        command = 'find {0} -type {1} | grep -v ".*/\..*"'.format(target, args.type)
     else:
-        command = 'find {0} | grep -v ".AppleDouble" | grep -v ".DS_Store"'.format(target)
+        command = 'find {0} | grep -v ".*/\..*"'.format(target)
 
     proc = sb.Popen(
            command,
@@ -93,11 +105,17 @@ if __name__ == "__main__":
     latest = latest.decode('utf-8').split('\n')
 
     diff = difference(latest, oldest)
-    # 差分があれば投稿
-    if len(diff):
-        slack.post_message_to_channel(args.channel, name.rstrip('/').split('/')[-1:][0] + "が更新されました", name='諜報部', icon=':nerv:')
+
+    titles = get_titles(diff)
+    # 差分がなければこのループに入らないから投稿しない
+    for raw in titles:
+        message = ""
+        massage += name.rstrip('/').split('/')[-1:][0]
+        message += " : "
+        message += raw
+        slack.post_message_to_channel('contents', message, name='諜報部', icon=':nerv:')
         for raw in diff:
-            slack.post_message_to_person('D1L0FHJCA', raw.split('\n')[-1:][0] + " が追加されました")
+            slack.post_message_to_person('D1L0FHJCA', raw.rstrip('/').split('/')[-1:][0] + " が追加されました")
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
