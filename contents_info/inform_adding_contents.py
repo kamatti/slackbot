@@ -54,12 +54,22 @@ def difference(latest, oldest):
     return list(set1.difference(set2))
 
 def get_titles(full_path):
+    '''
+    パスの中からタイトルと巻数(comics限定)を
+    抜き出してタプルにしてそれをリストにまとめて返す．
+    '''
     titles = []
 
     for raw in full_path:
-        tmp = re.sub('第[0-9]巻.*$', '', raw)
-        result, ext = os.path.splitext(res)
-        titles.append(result.rstrip('/').split('/')[-1:][0])
+        volume = ''
+        # 巻数を抜き出す．なければからの文字列になる．
+        m = re.search('第[0-9]*巻$', raw)
+        if m:
+            volume = m.group()
+        # タイトルを抜き出す
+        tmp = re.sub('第[0-9]*巻.*$', '', raw)
+        result, ext = os.path.splitext(tmp)
+        titles.append((result.rstrip('/').split('/')[-1:][0], volume))
 
     return sorted(list(set(titles)))
 
@@ -81,6 +91,7 @@ if __name__ == "__main__":
     # 探索するディレクトリのパス
     target = args.path
 
+    # 過去ファイルへのパス
     name = args.file
     with open(name, mode='rt', encoding='utf-8') as f:
         oldest = f.readlines()
@@ -108,14 +119,17 @@ if __name__ == "__main__":
 
     titles = get_titles(diff)
     # 差分がなければこのループに入らないから投稿しない
-    for raw in titles:
+    for title, volume in titles:
+        if name.rstrip('/').split('/')[-1:][0] == 'comics' and not volume:
+            continue
         message = ""
-        massage += name.rstrip('/').split('/')[-1:][0]
+        message += name.rstrip('/').split('/')[-1:][0]
         message += " : "
-        message += raw
+        message += title
+        if volume:
+            message += " "
+            message += volume
         slack.post_message_to_channel('contents', message, name='諜報部', icon=':nerv:')
-        for raw in diff:
-            slack.post_message_to_person('D1L0FHJCA', raw.rstrip('/').split('/')[-1:][0] + " が追加されました")
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
