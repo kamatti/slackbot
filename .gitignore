@@ -93,3 +93,4 @@ ENV/
 
 token.txt
 settings.json
+.DS_Store
