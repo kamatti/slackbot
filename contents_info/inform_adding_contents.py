@@ -2,9 +2,7 @@
 from slacker import Slacker
 
 import subprocess as sb
-import sys   # 引数取得
 import argparse
-import json
 import re
 import os.path
 
@@ -16,20 +14,14 @@ class Slack(object):
 
         self.__slacker = Slacker(token)
 
-    def post_message_to_channel(self, channel, message, *, ts=None, name=None, icon=None):
+    def post_message_to_channel(self, channel, message):
         """
         Slackチームの任意のチャンネルにメッセージを投稿する。
         """
 
         channel_name = "#" + channel
-        #thread化するかどうか
-        if ts:
-            info = self__slacker.chat.post_message(channel_name, message, as_user=True, thread_ts=ts)
-        else:
-            # slack.Response classはメンバbodyにjson形式でデータ持ってる
-            info = self.__slacker.chat.post_message(channel_name, message, username=name, icon_emoji=icon)
-
-        return info
+        # slack.Response classはメンバbodyにjson形式でデータ持ってる
+        self.__slacker.chat.post_message(channel_name, message, as_user=True)
 
     def post_message_to_person(self, channel, message, *, ts=None, name=None, icon=None):
         """
@@ -129,7 +121,7 @@ if __name__ == "__main__":
         if volume:
             message += " "
             message += volume
-        slack.post_message_to_channel('contents', message, name='諜報部', icon=':nerv:')
+        slack.post_message_to_channel('contents', message)
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
