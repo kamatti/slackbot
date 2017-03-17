@@ -19,21 +19,16 @@ class Slack(object):
         Slackチームの任意のチャンネルにメッセージを投稿する。
         """
 
-        channel_name = "#" + channel
+        channel_name = "#" + channel.lstrip('#')
         # slack.Response classはメンバbodyにjson形式でデータ持ってる
         self.__slacker.chat.post_message(channel_name, message, as_user=True)
 
-    def post_message_to_person(self, channel, message, *, ts=None, name=None, icon=None):
+    def post_message_to_person(self, channel, message):
         """
         Slackチームの任意のチャンネルにメッセージを投稿する。
         """
 
-        #thread化するかどうか
-        if ts:
-            info = self__slacker.chat.post_message(channel, message, as_user=True, thread_ts=ts)
-        else:
-            # slack.Response classはメンバbodyにjson形式でデータ持ってる
-            info = self.__slacker.chat.post_message(channel, message, username=name, icon_emoji=icon)
+        self.__slacker.chat.post_message(channel, message, as_user=True)
 
 
 def difference(latest, oldest):
@@ -121,7 +116,7 @@ if __name__ == "__main__":
         if volume:
             message += " "
             message += volume
-        slack.post_message_to_channel('contents', message)
+        slack.post_message_to_channel(args.channel, message)
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
