@@ -118,11 +118,12 @@ if __name__ == "__main__":
 
     # currentからの移動を検知
     temp = difference(oldest, latest)
-    movement = set(map(lambda x: re.sub('/.*\..*\Z', '', x.rstrip('\n')), temp))
+    temp = list(map(lambda x: re.sub('[0-9]* ', '', x.rstrip('\n')), temp))
+    movement = set(map(lambda x: '/'.join(x.split('/')[-2:-1]), temp))
     for title in movement:
         message = ''
         message += title
-        message += ' が移動されました'
+        message += 'が移動されました'
         slack.post_message_to_channel(args.channel, message)
 
     titles = get_titles(diff)
