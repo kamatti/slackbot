@@ -54,11 +54,23 @@ def get_titles(full_path):
         if m:
             volume = m.group()
         # タイトルを抜き出す
+        # 巻数を消去
         tmp = re.sub('第[0-9]*巻.*$', '', raw)
-        result, ext = os.path.splitext(tmp)
+        # 拡張子を分離
+        result, _ = os.path.splitext(tmp)
         titles.append((result.rstrip('/').split('/')[-1:][0], volume))
 
     return sorted(list(set(titles)))
+
+def is_exist(elem, target):
+    '''
+    targetリスト内にelemがあるかどうか
+    '''
+
+    for e in target:
+        if re.search(elem, e):
+            return True
+    return False
 
 if __name__ == "__main__":
 
@@ -99,15 +111,19 @@ if __name__ == "__main__":
            stdout=sb.PIPE,
            stderr=sb.PIPE
     )
-    latest, err = proc.communicate()
-    latest = latest.decode('utf-8').split('\n')
+    result, _ = proc.communicate()
+    latest = result.decode('utf-8').split('\n')
 
     diff = difference(latest, oldest)
 
     titles = get_titles(diff)
     # 差分がなければこのループに入らないから投稿しない
     for title, volume in titles:
+        # 新しいものが追加されたとき余計なものが出ないように対策
         if name.rstrip('/').split('/')[-1:][0] == 'comics' and not volume:
+            continue
+        # パス中のディレクトリ名が変更されただけの場合の対策
+        if is_exist(title, oldest):
             continue
         message = ""
         message += name.rstrip('/').split('/')[-1:][0]
