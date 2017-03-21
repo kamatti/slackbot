@@ -116,6 +116,15 @@ if __name__ == "__main__":
 
     diff = difference(latest, oldest)
 
+    # currentからの移動を検知
+    temp = difference(oldest, latest)
+    movement = set(map(lambda x: re.sub('/.*\..*\Z', '', x.rstrip('\n')), temp))
+    for title in movement:
+        message = ''
+        message += title
+        message += ' が移動されました'
+        slack.post_message_to_channel(args.channel, message)
+
     titles = get_titles(diff)
     # 差分がなければこのループに入らないから投稿しない
     for title, volume in titles:
