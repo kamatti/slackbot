@@ -88,7 +88,8 @@ if __name__ == "__main__":
     slack = Slack(args.access_token)
 
     # 探索するディレクトリのパス
-    target = args.path
+    # 行末に/が必ずあるようにする
+    target = args.path.rstrip('/') + '/'
 
     # 過去ファイルへのパス
     name = args.file
@@ -124,7 +125,7 @@ if __name__ == "__main__":
         message = ''
         message += title
         message += 'が移動されました'
-        slack.post_message_to_channel(args.channel, message)
+        # slack.post_message_to_channel(args.channel, message)
 
     titles = get_titles(diff)
     # 差分がなければこのループに入らないから投稿しない
@@ -142,9 +143,11 @@ if __name__ == "__main__":
         if volume:
             message += " "
             message += volume
-        slack.post_message_to_channel(args.channel, message)
+        # slack.post_message_to_channel(args.channel, message)
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
+        pattern = '\A.*/' + target.rstrip('/').split[-1:][0] + '/'
         for raw in latest:
-            print(raw, file=f)
+            content = re.sub(pattern, '', raw)
+            print(content, file=f)
