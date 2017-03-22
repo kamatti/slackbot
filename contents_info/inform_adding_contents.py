@@ -40,14 +40,14 @@ def difference(latest, oldest):
 
     return list(set1.difference(set2))
 
-def get_titles(full_path):
+def get_titles(path):
     '''
     パスの中からタイトルと巻数(comics限定)を
     抜き出してタプルにしてそれをリストにまとめて返す．
     '''
     titles = []
 
-    for raw in full_path:
+    for raw in path:
         volume = ''
         # 巻数を抜き出す．なければからの文字列になる．
         m = re.search('第[0-9]*巻$', raw)
@@ -71,6 +71,7 @@ def is_exist(elem, target):
         if re.search(elem, e):
             return True
     return False
+
 
 if __name__ == "__main__":
 
@@ -113,41 +114,80 @@ if __name__ == "__main__":
            stderr=sb.PIPE
     )
     result, _ = proc.communicate()
-    latest = result.decode('utf-8').split('\n')
+    # latest = result.decode('utf-8').split('\n')
+    with open('res_anime', mode='rt', encoding='utf-8') as f:
+        latest = f.readlines()
+    latest = list(map(lambda x: x.rstrip(), latest))
+    #latest = latest.split('\n')
+    # print(latest)
+    pattern = '\A.*/' + target.rstrip('/').split('/')[-1:][0] + '/'
+    latest = list(map(lambda x: re.sub(pattern, '', x), latest))
+    latest = list(map(lambda x: re.sub('単ページ', '', x), latest))
 
     diff = difference(latest, oldest)
 
-    # currentからの移動を検知
-    temp = difference(oldest, latest)
-    temp = list(map(lambda x: re.sub('[0-9]* ', '', x.rstrip('\n')), temp))
-    movement = set(map(lambda x: '/'.join(x.split('/')[-2:-1]), temp))
-    for title in movement:
-        message = ''
-        message += title
-        message += 'が移動されました'
-        # slack.post_message_to_channel(args.channel, message)
+    # ディレクトリのナンバリングが消去されただけの差分を消去
+    for raw in oldest:
+        temp = re.sub('\A[0-9]* ', '', raw)
+        try:
+            diff.remove(temp)
+        except ValueError:
+            pass
+        finally:
+            pass
 
     titles = get_titles(diff)
-    # 差分がなければこのループに入らないから投稿しない
+
+    # 途中のディレクトリ名が変更されただけの行を削除
     for title, volume in titles:
+        if is_exist(title, oldest):
+            try:
+                titles.remove((title, volume))
+            except ValueError:
+                pass
+            finally:
+                pass
+
+    # 差分がなければこのループに入らないから投稿しない
+    arranges = []
+    for title, volume in titles:
+        message = ""
         # 新しいものが追加されたとき余計なものが出ないように対策
         if name.rstrip('/').split('/')[-1:][0] == 'comics' and not volume:
             continue
         # パス中のディレクトリ名が変更されただけの場合の対策
         if is_exist(title, oldest):
+            arranges.append(title)
             continue
-        message = ""
         message += name.rstrip('/').split('/')[-1:][0]
         message += " : "
         message += title
         if volume:
             message += " "
             message += volume
+        print(message)
         # slack.post_message_to_channel(args.channel, message)
+
+    # ディレクトリにまとめられたものを通知
+    arrange = []
+    for raw in arranges:
+        for d in diff:
+            if re.search(raw, d):
+                arrange.append(d.rstrip('/').split('/')[0])
+    print(arrange)
+    print(set(arrange))
+    for title in set(arrange):
+        message = ''
+        message += title
+        message += 'がまとめられました'
+        print(message)
+        # slack.post_message_to_channel(args.channel, message)
+
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
         pattern = '\A.*/' + target.rstrip('/').split('/')[-1:][0] + '/'
         for raw in latest:
+            content = raw
             content = re.sub(pattern, '', raw)
             print(content, file=f)
