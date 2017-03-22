@@ -165,7 +165,8 @@ if __name__ == "__main__":
         if volume:
             message += " "
             message += volume
-        slack.post_message_to_channel(args.channel, message)
+        print(message)
+        # slack.post_message_to_channel(args.channel, message)
 
     # ディレクトリにまとめられたものを通知
     arrange = []
@@ -179,7 +180,8 @@ if __name__ == "__main__":
         message = ''
         message += title
         message += 'がまとめられました'
-        slack.post_message_to_channel(args.channel, message)
+        print(message)
+        # slack.post_message_to_channel(args.channel, message)
 
 
     # ファイル内のリストを更新
