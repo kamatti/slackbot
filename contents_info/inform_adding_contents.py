@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     # ファイル内のリストを更新
     with open(name, mode='wt', encoding='utf-8') as f:
-        pattern = '\A.*/' + target.rstrip('/').split[-1:][0] + '/'
+        pattern = '\A.*/' + target.rstrip('/').split('/')[-1:][0] + '/'
         for raw in latest:
             content = re.sub(pattern, '', raw)
             print(content, file=f)
