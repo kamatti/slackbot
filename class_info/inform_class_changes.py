@@ -65,7 +65,7 @@ class Slack(object):
                                              text='', username=name, icon_emoji=icon)
 
 def read_json_file(path):
-    with open(path, 'rt') as f:
+    with open(path, mode='rt', encoding='utf-8') as f:
         date = json.load(f)
     return date
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     filename = 'diff.csv'
     diff = difference(prefix + 'latest.csv', prefix + 'oldest.csv')
     # 書き込み
-    with open(prefix + filename, 'w') as f:
+    with open(prefix + filename, mode='wt', encoding='utf-8') as f:
         f.writelines(diff)
 
     # 投稿

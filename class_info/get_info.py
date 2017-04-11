@@ -17,7 +17,7 @@ def get_info(filename):
     # 変更情報はtable width=650に記載されている
     tables = soup.findAll('table', {'width': '650'})
 
-    csvFile = open(filename, 'wt', newline='', encoding='utf-8')
+    csvFile = open(filename, mode='wt', newline='', encoding='utf-8')
     writer = csv.writer(csvFile)
 
     try:

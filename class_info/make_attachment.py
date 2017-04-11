@@ -10,7 +10,7 @@ def make_attachment(csvFile, pattern):
     授業変更通知用のattachmentを生成
     ディクショナリをリストでまとめて返す
     """
-    with open(csvFile, 'rt') as f:
+    with open(csvFile, mode='rt', encoding='utf-8') as f:
         reader = csv.reader(f)
 
         # 返り値にするためのリスト
