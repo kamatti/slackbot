@@ -30,7 +30,9 @@ class ChangeHandler(FileSystemEventHandler):
       print('{} has been deleted.'.format(event.src_path))
 
 def main():
-  BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+  #BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+  #BASE_DIR = "/home/squid/nas/work/趣味/うp依頼/"
+  BASE_DIR = "/home/squid/nas/work/"
 
   while True:
     event_handler = ChangeHandler()
