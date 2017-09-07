@@ -1,0 +1,11 @@
+{
+  "team":{
+    "kaz_lab":{
+      "access_token":"YOUR ACCESS TOKEN",
+      "channel":"CHANNEL NAME",
+      "target":[
+        "TARGET FULL PATH"
+      ]
+    }
+  }
+}
