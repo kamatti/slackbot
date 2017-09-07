@@ -15,8 +15,15 @@ def parse_json(path):
 
 def main(**args):
   print(args)
-  settings = parse_json(args['f'])
+  settings = parse_json(args['f'])["team"]["kaz_lab"]
   print(settings)
+
+  # アクセストークンを取得
+  token = settings["access_token"]
+  # slack = Slack(token)
+
+  # 更新確認したい場所に移動
+  os.chdir(args["path"])
 
   command = "git status -s"
   # (左辺).stdout.read()で出力内容を得る
@@ -25,6 +32,7 @@ def main(**args):
   
   results = command_results.stdout.read().decode("utf-8")
 
+  # 追加されたファイル一覧を取得する
   added_files = []
   for raw in results.rstrip().split("\n"):
     status = raw.split()[0]
@@ -34,6 +42,10 @@ def main(**args):
       added_files.append(path)
 
   print(added_files)
+
+  # 追加ファイル一覧をいい感じに整形する
+
+  # slack.post_message_to_channel(settings["channel"], hoge)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="ファイル監視スクリプト")
