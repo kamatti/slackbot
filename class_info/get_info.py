@@ -11,7 +11,7 @@ def get_info(filename):
     授業変更ページの構成が残念なのでだいぶ無理やり情報を取得している．
     pram : filename -> 保存するファイル名
     """
-    html = urlopen('http://hirose.sendai-nct.ac.jp/kyuko/kyuko.cgi')
+    html = urlopen('http://hirose-web.sendai-nct.ac.jp/kyuko/kyuko.cgi')
     soup = BeautifulSoup(html, 'html.parser')
 
     # 変更情報はtable width=650に記載されている
